@@ -1,16 +1,28 @@
 FROM node:18-slim
 
-# Install required dependencies for DPM
+# Install required dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
+    wget \
+    gnupg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install DPM (Digital Asset Package Manager)
-RUN curl -sSL https://get.digitalasset.com/install/install.sh | sh -s
+# Install DPM with verbose output and error checking
+RUN echo "=== Installing DPM ===" && \
+    curl -sSL https://get.digitalasset.com/install/install.sh > /tmp/install-dpm.sh && \
+    cat /tmp/install-dpm.sh && \
+    sh /tmp/install-dpm.sh && \
+    echo "=== DPM Installation Complete ===" && \
+    ls -la /root/.dpm/bin/ || echo "DPM bin directory not found!"
 
 # Add DPM to PATH
 ENV PATH="/root/.dpm/bin:${PATH}"
+
+# Verify DPM is installed
+RUN echo "=== Verifying DPM Installation ===" && \
+    which dpm || echo "DPM not in PATH!" && \
+    dpm version --active || echo "DPM version command failed!"
 
 # Set working directory
 WORKDIR /app

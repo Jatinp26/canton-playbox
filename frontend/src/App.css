@@ -169,6 +169,24 @@ body {
   cursor: not-allowed;
 }
 
+.btn-icon {
+  background: transparent;
+  border: 1px solid #3e3e42;
+  color: #d4d4d4;
+  padding: 0.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: #2a2d2e;
+  border-color: #569cd6;
+}
+
 .btn-primary {
   background: #0e639c;
   color: #fff;

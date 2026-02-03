@@ -228,9 +228,9 @@ body {
 
 /* Test button - bright blue */
 .btn-success {
-  background: linear-gradient(135deg, #1b1b1b 0%, #49494a 100%);
+  background: linear-gradient(135deg, #323232 0%, #323232 100%);
   color: #fff;
-  box-shadow: 0 4px 15px rgba(28, 66, 212, 0.4);
+  box-shadow: 2px 2px 3px #b0fac7;
 }
 
 .btn-success:hover:not(:disabled) {
@@ -250,9 +250,9 @@ body {
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #323232 0%, #323131 100%);
+  background: linear-gradient(135deg, #323232 0%, #323232 100%);
   color: #fff;
-  box-shadow: 0 4px 12px #b0fac7;
+  box-shadow: 2px 2px 3px #b0fac7;
 }
 
 .btn-danger:hover:not(:disabled) {

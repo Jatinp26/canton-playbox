@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import axios from 'axios';
-import { FaPlay, FaCheckCircle, FaCog, FaCode, FaDownload, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlay, FaCheckCircle, FaCog, FaCode, FaPlus, FaTrash } from 'react-icons/fa';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
@@ -273,26 +273,6 @@ function App() {
     }
   };
 
-  const handleDownload = () => {
-    let content = '# Canton IDE Project Export\n\n';
-    content += `## Project: ${selectedTemplate}\n\n`;
-    content += '## Files:\n\n';
-    
-    Object.entries(files).forEach(([filename, fileContent]) => {
-      content += `### ${filename}\n\`\`\`\n${fileContent}\n\`\`\`\n\n`;
-    });
-
-    const blob = new Blob([content], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${selectedTemplate}-project.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const handleReset = () => {
     if (window.confirm('Clear all code and reset to empty template? This cannot be undone.')) {
       localStorage.removeItem('canton-ide-files');
@@ -433,14 +413,6 @@ function App() {
             >
               <FaPlay />
               Test
-            </button>
-            <button
-              onClick={handleDownload}
-              className="btn btn-secondary"
-              disabled={loading}
-            >
-              <FaDownload />
-              Download
             </button>
             <button
               onClick={handleReset}

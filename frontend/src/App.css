@@ -92,7 +92,7 @@ body {
   flex-direction: column;
   gap: 1.5rem;
   border-right: 1px solid rgba(176, 250, 199, 0.2);
-  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 2px 0 15px #1b1b1b;
 }
 
 .section h3 {
@@ -446,11 +446,11 @@ body {
 }
 
 .file-item.active {
-  box-shadow: 0 0 15px rgba(176, 250, 199, 0.15);
+  box-shadow: 0 0 15px #1b1b1b;
 }
 
 .template-select:focus {
-  box-shadow: 0 0 0 3px rgba(176, 250, 199, 0.25);
+  box-shadow: 0 0 0 3px #1b1b1b;
 }
 
 /* Accent highlights */

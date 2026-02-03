@@ -187,15 +187,14 @@ app.post('/api/test', buildLimiter, async (req, res) => {
 app.get('/api/templates/:name', (req, res) => {
   const templates = {
     'token-basic': {
-      'daml.yaml': `sdk-version: 3.4.0
+      'daml.yaml': `sdk-version: 3.4.10
 name: token-basic
 version: 1.0.0
 source: daml
 dependencies:
   - daml-prim
   - daml-stdlib
-build-options:
-  - --target=3.4`,
+  - daml3-script`,
       'daml/Token.daml': `module Token where
 
 import Daml.Script
@@ -237,15 +236,14 @@ setup = script do
   return ()`
     },
     'nft-simple': {
-      'daml.yaml': `sdk-version: 3.4.0
+      'daml.yaml': `sdk-version: 3.4.10
 name: nft-simple
 version: 1.0.0
 source: daml
 dependencies:
   - daml-prim
   - daml-stdlib
-build-options:
-  - --target=3.4`,
+  - daml3-script`,
       'daml/NFT.daml': `module NFT where
 
 import Daml.Script

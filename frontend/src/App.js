@@ -489,7 +489,7 @@ function App() {
 
         {/* Footer */}
         <footer className="footer">
-          NOT official tool, made by <a href="https://www.linkedin.com/in/jatin0x7e2/" target="_blank" rel="noopener noreferrer">Jatin</a>, DevRel, <a href="https://canton.foundation" target="_blank" rel="noopener noreferrer">Canton Foundation</a> for community ❤️
+          NOT official tool, made by <a href="https://x.com/Jpandya26" target="_blank" rel="noopener noreferrer">Jatin</a>, DevRel, <a href="https://canton.foundation" target="_blank" rel="noopener noreferrer">Canton Foundation</a> for community
         </footer>
       </div>
     </div>

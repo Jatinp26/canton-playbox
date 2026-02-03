@@ -14,10 +14,6 @@ const TEMPLATES = {
   'token-basic': {
     name: 'Basic Token',
     description: 'Simple fungible token with transfer functionality'
-  },
-  'nft-simple': {
-    name: 'Simple NFT',
-    description: 'Basic NFT implementation'
   }
 };
 
@@ -30,8 +26,7 @@ source: daml
 dependencies:
   - daml-prim
   - daml-stdlib
-build-options:
-  - --target=3.4`,
+  - daml3-script`,
   'daml/Main.daml': `module Main where
 
 import Daml.Script

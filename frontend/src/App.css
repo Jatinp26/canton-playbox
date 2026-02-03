@@ -107,18 +107,19 @@ body {
 .template-select {
   width: 100%;
   padding: 0.625rem;
-  background: rgba(0, 40, 70, 0.6);
+  background: #323232;
   border: 1px solid rgba(176, 250, 199, 0.3);
   border-radius: 8px;
   color: #ffffff;
   font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .template-select:hover {
   border-color: #b0fac7;
-  background: rgba(0, 40, 70, 0.8);
+  background: #323232;
   box-shadow: 0 0 10px rgba(176, 250, 199, 0.15);
 }
 
@@ -150,12 +151,13 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
+  font-weight: 600;
   transition: all 0.2s;
   color: #cbd5e1;
 }
 
 .file-item:hover {
-  background: rgba(176, 250, 199, 0.1);
+  background: #323232;
   color: #ffffff;
 }
 
@@ -363,6 +365,7 @@ body {
   border-top: 1px solid rgba(176, 250, 199, 0.25);
   text-align: center;
   font-size: 0.75rem;
+  font-weight: 700;  
   color: #d7dde5;
 }
 

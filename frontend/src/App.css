@@ -214,9 +214,9 @@ body {
 
 /* Build button - Canton mint/cyan */
 .btn-primary {
-  background: linear-gradient(135deg, #b0fac7 0%, #b0fac7 100%);
-  color: #001a33;
-  box-shadow: 1px 1px 0.5px #323232;
+  background: linear-gradient(135deg, #323232 0%, #323232 100%);
+  color: #fff;
+  box-shadow: 1px 1px 0.5px #b0fac7;
 }
 
 .btn-primary:hover:not(:disabled) {

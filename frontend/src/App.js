@@ -344,7 +344,7 @@ function App() {
       {/* Header */}
       <header className="header">
         <div className="header-left">
-          <h1>🏛️ Canton IDE</h1>
+          <h1>Canton IDE</h1>
           <span className="subtitle">Build DAML apps in your browser</span>
         </div>
         <div className="header-right">
@@ -456,14 +456,6 @@ function App() {
               Reset
             </button>
           </div>
-
-          {/* Debug Info */}
-          <div className="section" style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-            <h3>Status</h3>
-            <div>Files: {fileList.length}</div>
-            <div>Backend: {API_URL.includes('localhost') ? '🔴 Local' : '🟢 Remote'}</div>
-            <div>💾 Auto-save: Enabled</div>
-          </div>
         </aside>
 
         {/* Editor */}
@@ -499,6 +491,11 @@ function App() {
             {output || 'Output will appear here...'}
           </pre>
         </div>
+
+        {/* Footer */}
+        <footer className="footer">
+          NOT official tool, made by <a href="https://www.linkedin.com/in/jatin0x7e2/" target="_blank" rel="noopener noreferrer">Jatin</a>, DevRel, <a href="https://canton.foundation" target="_blank" rel="noopener noreferrer">Canton Foundation</a> for community ❤️
+        </footer>
       </div>
     </div>
   );

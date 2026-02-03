@@ -216,8 +216,6 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, #b0fac7 0%, #b0fac7 100%);
   color: #001a33;
-  box-shadow: 0 2px 1px rgba(176, 250, 199, 0.4);
-  font-weight: 700;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -230,7 +228,7 @@ body {
 .btn-success {
   background: linear-gradient(135deg, #323232 0%, #323232 100%);
   color: #fff;
-  box-shadow: 2px 2px 1px #b0fac7;
+  box-shadow: 1px 1px 0.5px #b0fac7;
 }
 
 .btn-success:hover:not(:disabled) {
@@ -252,7 +250,7 @@ body {
 .btn-danger {
   background: linear-gradient(135deg, #323232 0%, #323232 100%);
   color: #fff;
-  box-shadow: 2px 2px 1px #b0fac7;
+  box-shadow: 1px 1px 0.5px #b0fac7;
 }
 
 .btn-danger:hover:not(:disabled) {

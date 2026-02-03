@@ -1,12 +1,17 @@
 FROM node:18-slim
 
-# Install required dependencies
+# Install required dependencies including Java (needed for dpm test)
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     wget \
     gnupg \
+    openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/*
+
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install DPM with verbose output and error checking
 RUN echo "=== Installing DPM ===" && \
@@ -23,6 +28,11 @@ ENV PATH="/root/.dpm/bin:${PATH}"
 RUN echo "=== Verifying DPM Installation ===" && \
     which dpm || echo "DPM not in PATH!" && \
     dpm version --active || echo "DPM version command failed!"
+
+# Verify Java is installed
+RUN echo "=== Verifying Java Installation ===" && \
+    java -version && \
+    echo "Java installed successfully!"
 
 # Set working directory
 WORKDIR /app

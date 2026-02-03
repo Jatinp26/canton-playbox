@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import axios from 'axios';
-import { FaPlay, FaCheckCircle, FaCog, FaCode, FaDownload, FaPlus } from 'react-icons/fa';
+import { FaPlay, FaCheckCircle, FaCog, FaCode, FaDownload, FaPlus, FaTrash } from 'react-icons/fa';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
@@ -23,7 +23,7 @@ const TEMPLATES = {
 
 // Empty template structure
 const EMPTY_TEMPLATE = {
-  'daml.yaml': `sdk-version: 3.4.0
+  'daml.yaml': `sdk-version: 3.4.10
 name: my-project
 version: 1.0.0
 source: daml
@@ -46,19 +46,47 @@ setup = script do
 
 function App() {
   const [selectedTemplate, setSelectedTemplate] = useState('empty');
-  const [files, setFiles] = useState(EMPTY_TEMPLATE);
-  const [currentFile, setCurrentFile] = useState('daml/Main.daml');
-  const [output, setOutput] = useState('Welcome to Canton IDE! Select a template or start coding.');
+  const [files, setFiles] = useState(() => {
+    // Try to load from localStorage first
+    const saved = localStorage.getItem('canton-ide-files');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to load saved files:', e);
+      }
+    }
+    return EMPTY_TEMPLATE;
+  });
+  const [currentFile, setCurrentFile] = useState(() => {
+    const saved = localStorage.getItem('canton-ide-current-file');
+    return saved || 'daml/Main.daml';
+  });
+  const [output, setOutput] = useState('Welcome to Canton IDE! Your code auto-saves locally.');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('idle');
+
+  // Auto-save files to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('canton-ide-files', JSON.stringify(files));
+  }, [files]);
+
+  // Auto-save current file selection
+  useEffect(() => {
+    localStorage.setItem('canton-ide-current-file', currentFile);
+  }, [currentFile]);
 
   // Load template on change
   useEffect(() => {
     if (selectedTemplate === 'empty') {
-      setFiles(EMPTY_TEMPLATE);
-      setCurrentFile('daml/Main.daml');
-      setOutput('Empty template loaded. Start coding!');
-      setStatus('idle');
+      // Don't override if user has custom content
+      const hasCustomContent = localStorage.getItem('canton-ide-files');
+      if (!hasCustomContent) {
+        setFiles(EMPTY_TEMPLATE);
+        setCurrentFile('daml/Main.daml');
+        setOutput('Empty template loaded. Start coding!');
+        setStatus('idle');
+      }
     } else {
       loadTemplate(selectedTemplate);
     }
@@ -270,6 +298,17 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleReset = () => {
+    if (window.confirm('Clear all code and reset to empty template? This cannot be undone.')) {
+      localStorage.removeItem('canton-ide-files');
+      localStorage.removeItem('canton-ide-current-file');
+      setFiles(EMPTY_TEMPLATE);
+      setCurrentFile('daml/Main.daml');
+      setOutput('Reset to empty template. Code cleared.');
+      setStatus('idle');
+    }
+  };
+
   const handleAddFile = () => {
     const filename = prompt('Enter filename (e.g., daml/NewModule.daml):');
     if (filename && filename.trim()) {
@@ -408,13 +447,22 @@ function App() {
               <FaDownload />
               Download
             </button>
+            <button
+              onClick={handleReset}
+              className="btn btn-danger"
+              disabled={loading}
+            >
+              <FaTrash />
+              Reset
+            </button>
           </div>
 
           {/* Debug Info */}
           <div className="section" style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-            <h3>Debug</h3>
+            <h3>Status</h3>
             <div>Files: {fileList.length}</div>
             <div>Backend: {API_URL.includes('localhost') ? '🔴 Local' : '🟢 Remote'}</div>
+            <div>💾 Auto-save: Enabled</div>
           </div>
         </aside>
 

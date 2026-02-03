@@ -349,7 +349,7 @@ body {
 
 /* Section styling */
 .section {
-  background: rgba(0, 40, 70, 0.4);
+  background: #1b1b1b;
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid rgba(176, 250, 199, 0.2);

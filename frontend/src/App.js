@@ -57,7 +57,7 @@ function App() {
     const saved = localStorage.getItem('canton-ide-current-file');
     return saved || 'daml/Main.daml';
   });
-  const [output, setOutput] = useState('Welcome to Canton IDE! Your code auto-saves locally.');
+  const [output, setOutput] = useState('Welcome to Canton Playbox! Your code auto-saves locally.');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('idle');
 
@@ -319,8 +319,7 @@ function App() {
       {/* Header */}
       <header className="header">
         <div className="header-left">
-          <h1>Canton IDE</h1>
-          <span className="subtitle">Build DAML apps in your browser</span>
+          <h1>Canton Playbox</h1>
         </div>
         <div className="header-right">
           <a 

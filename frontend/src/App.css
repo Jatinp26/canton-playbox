@@ -216,6 +216,7 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, #b0fac7 0%, #b0fac7 100%);
   color: #001a33;
+  box-shadow: 1px 1px 0.5px #323232;
 }
 
 .btn-primary:hover:not(:disabled) {

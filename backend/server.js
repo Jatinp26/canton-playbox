@@ -29,7 +29,7 @@ fs.mkdir(TEMP_DIR, { recursive: true }).catch(console.error);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Canton IDE Backend is running' });
+  res.json({ status: 'ok', message: 'Canton Playbox Backend is running' });
 });
 
 // Execute command with timeout

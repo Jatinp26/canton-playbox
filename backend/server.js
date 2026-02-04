@@ -29,7 +29,7 @@ fs.mkdir(TEMP_DIR, { recursive: true }).catch(console.error);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Canton Playbox Backend is running' });
+  res.json({ status: 'ok', message: 'Canton IDE Backend is running' });
 });
 
 // Execute command with timeout
@@ -170,24 +170,25 @@ app.post('/api/templates/create', async (req, res) => {
   console.log(`[${sessionId}] Creating from template: ${template}`);
   
   try {
-    // Create temp directory
-    await fs.mkdir(projectDir, { recursive: true });
+    // DON'T create the directory - dpm new creates it!
+    // Just ensure parent TEMP_DIR exists (already done at startup)
     
     // Run dpm new with template
     console.log(`[${sessionId}] Running: dpm new ${projectDir} --template ${template}`);
     
-    const { stdout } = await execWithTimeout(
+    const { stdout, stderr } = await execWithTimeout(
       `dpm new ${projectDir} --template ${template}`,
       {},
       60000
     );
     
-    console.log(`[${sessionId}] Template created:`, stdout);
+    console.log(`[${sessionId}] Template created stdout:`, stdout);
+    if (stderr) console.log(`[${sessionId}] Template created stderr:`, stderr);
     
     // Read all files from generated project
     const files = await readProjectFiles(projectDir);
     
-    console.log(`[${sessionId}] Read ${Object.keys(files).length} files`);
+    console.log(`[${sessionId}] Read ${Object.keys(files).length} files:`, Object.keys(files));
     
     // Cleanup
     await fs.rm(projectDir, { recursive: true, force: true });
@@ -201,6 +202,13 @@ app.post('/api/templates/create', async (req, res) => {
     
   } catch (error) {
     console.error(`[${sessionId}] Error creating template:`, error);
+    console.error(`[${sessionId}] Error type:`, typeof error);
+    console.error(`[${sessionId}] Error keys:`, Object.keys(error));
+    console.error(`[${sessionId}] Error message:`, error.message);
+    console.error(`[${sessionId}] Error stack:`, error.stack);
+    console.error(`[${sessionId}] Error stdout:`, error.stdout);
+    console.error(`[${sessionId}] Error stderr:`, error.stderr);
+    console.error(`[${sessionId}] Error error:`, error.error);
     
     // Cleanup on error
     try {
@@ -209,9 +217,31 @@ app.post('/api/templates/create', async (req, res) => {
       console.error('Cleanup error:', cleanupErr);
     }
     
+    // Build detailed error message
+    let errorMessage = 'Template creation failed';
+    
+    if (error.stderr) {
+      errorMessage = error.stderr;
+    } else if (error.stdout) {
+      errorMessage = error.stdout;
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else if (error.error && error.error.message) {
+      errorMessage = error.error.message;
+    } else if (error.error) {
+      errorMessage = String(error.error);
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
+      details: {
+        message: error.message,
+        stderr: error.stderr,
+        stdout: error.stdout,
+        code: error.code,
+        errorType: typeof error
+      },
       sessionId
     });
   }
@@ -573,6 +603,6 @@ setInterval(async () => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Canton Playbox Backend running on port ${PORT}`);
+  console.log(`🚀 Canton IDE Backend running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

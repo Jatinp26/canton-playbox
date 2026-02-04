@@ -6,18 +6,7 @@ import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-const TEMPLATES = {
-  'empty': {
-    name: 'Empty Template',
-    description: 'Start from scratch with an empty project'
-  },
-  'token-basic': {
-    name: 'Basic Token',
-    description: 'Simple fungible token with transfer functionality'
-  }
-};
-
-// Empty template structure
+// Empty template structure (fallback)
 const EMPTY_TEMPLATE = {
   'daml.yaml': `sdk-version: 3.4.10
 name: my-project
@@ -40,6 +29,10 @@ setup = script do
 };
 
 function App() {
+  // NEW: Dynamic template loading state
+  const [templates, setTemplates] = useState([]);
+  const [templatesLoaded, setTemplatesLoaded] = useState(false);
+  
   const [selectedTemplate, setSelectedTemplate] = useState('empty');
   const [files, setFiles] = useState(() => {
     // Try to load from localStorage first
@@ -57,9 +50,53 @@ function App() {
     const saved = localStorage.getItem('canton-ide-current-file');
     return saved || 'daml/Main.daml';
   });
-  const [output, setOutput] = useState('Welcome to Canton Playbox! Your code auto-saves locally.');
+  const [output, setOutput] = useState('Loading templates...');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('idle');
+
+  // NEW: Load available templates on mount
+  useEffect(() => {
+    loadAvailableTemplates();
+  }, []);
+
+  // NEW: Load templates from backend
+  const loadAvailableTemplates = async () => {
+    try {
+      console.log('Loading available templates from backend...');
+      const response = await axios.get(`${API_URL}/api/templates/list`);
+      
+      console.log('Templates response:', response.data);
+      
+      if (response.data.success && response.data.templates) {
+        setTemplates(response.data.templates);
+        setTemplatesLoaded(true);
+        setOutput('Welcome to Canton Playbox! Your code auto-saves locally.');
+        
+        if (response.data.warning) {
+          console.warn('Templates warning:', response.data.warning);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      // Fallback to basic templates
+      setTemplates([
+        {
+          id: 'empty',
+          name: 'Empty Template',
+          description: 'Start from scratch',
+          source: 'fallback'
+        },
+        {
+          id: 'token-basic',
+          name: 'Basic Token',
+          description: 'Simple fungible token with transfer functionality',
+          source: 'fallback'
+        }
+      ]);
+      setTemplatesLoaded(true);
+      setOutput('Welcome to Canton Playbox! (Templates list unavailable - using fallback)');
+    }
+  };
 
   // Auto-save files to localStorage whenever they change
   useEffect(() => {
@@ -95,6 +132,40 @@ function App() {
       console.log('Loading template:', templateName);
       console.log('API URL:', API_URL);
       
+      // NEW: Try to load from DPM first
+      const template = templates.find(t => t.id === templateName);
+      
+      if (template && template.source === 'dpm') {
+        // Load from DPM using new endpoint
+        console.log('Loading from DPM:', templateName);
+        
+        const response = await axios.post(`${API_URL}/api/templates/create`, {
+          template: templateName
+        });
+        
+        console.log('DPM template response:', response.data);
+        
+        if (response.data.success && response.data.files) {
+          setFiles(response.data.files);
+          
+          // Set first DAML file as current
+          const fileKeys = Object.keys(response.data.files);
+          const damlFiles = fileKeys.filter(f => f.endsWith('.daml'));
+          
+          if (damlFiles.length > 0) {
+            setCurrentFile(damlFiles[0]);
+          } else if (fileKeys.length > 0) {
+            setCurrentFile(fileKeys[0]);
+          }
+          
+          setOutput(`Template "${template.name}" loaded successfully!`);
+          setStatus('idle');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Fallback to existing hardcoded templates
       const response = await axios.get(`${API_URL}/api/templates/${templateName}`);
       
       console.log('Raw response:', response);
@@ -312,7 +383,9 @@ function App() {
     console.log('- files is array?', Array.isArray(files));
     console.log('- fileList:', fileList);
     console.log('- currentFile:', currentFile);
-  }, [selectedTemplate, files, fileList, currentFile]);
+    console.log('- templatesLoaded:', templatesLoaded);
+    console.log('- templates count:', templates.length);
+  }, [selectedTemplate, files, fileList, currentFile, templatesLoaded, templates]);
 
   return (
     <div className="app">
@@ -351,17 +424,23 @@ function App() {
               value={selectedTemplate}
               onChange={(e) => setSelectedTemplate(e.target.value)}
               className="template-select"
-              disabled={loading}
+              disabled={loading || !templatesLoaded}
             >
-              {Object.entries(TEMPLATES).map(([key, template]) => (
-                <option key={key} value={key}>
-                  {template.name}
-                </option>
-              ))}
+              {templatesLoaded ? (
+                templates.map(template => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))
+              ) : (
+                <option>Loading templates...</option>
+              )}
             </select>
-            <p className="template-description">
-              {TEMPLATES[selectedTemplate]?.description || 'No description'}
-            </p>
+            {templatesLoaded && templates.find(t => t.id === selectedTemplate) && (
+              <p className="template-description">
+                {templates.find(t => t.id === selectedTemplate).description}
+              </p>
+            )}
           </div>
 
           <div className="section">

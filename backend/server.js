@@ -53,6 +53,203 @@ function execWithTimeout(command, options, timeout = 60000) {
   });
 }
 
+// ========== NEW: DPM TEMPLATE ENDPOINTS ==========
+
+// List available DPM templates dynamically
+app.get('/api/templates/list', async (req, res) => {
+  console.log('Listing available DPM templates...');
+  
+  try {
+    // Run dpm new --list
+    const { stdout } = await execWithTimeout('dpm new --list', {}, 30000);
+    
+    console.log('DPM output:', stdout);
+    
+    // Parse template names from output
+    const templates = [];
+    const lines = stdout.split('\n');
+    let inTemplateList = false;
+    
+    for (const line of lines) {
+      if (line.includes('Available templates:') || line.includes('available templates:')) {
+        inTemplateList = true;
+        continue;
+      }
+      
+      if (inTemplateList && line.trim().startsWith('-')) {
+        const templateName = line.trim().substring(1).trim();
+        if (templateName) {
+          templates.push({
+            id: templateName,
+            name: formatTemplateName(templateName),
+            description: getTemplateDescription(templateName),
+            source: 'dpm'
+          });
+        }
+      }
+    }
+    
+    // Always include empty template first
+    templates.unshift({
+      id: 'empty',
+      name: 'Empty Template',
+      description: 'Start from scratch with an empty project',
+      source: 'built-in'
+    });
+    
+    // Include existing hardcoded token-basic template
+    templates.push({
+      id: 'token-basic',
+      name: 'Basic Token',
+      description: 'Simple fungible token with transfer functionality',
+      source: 'built-in'
+    });
+    
+    console.log('Found templates:', templates.map(t => t.id));
+    
+    res.json({
+      success: true,
+      templates
+    });
+    
+  } catch (error) {
+    console.error('Error listing DPM templates:', error);
+    
+    // Fallback to built-in templates
+    res.json({
+      success: true,
+      templates: [
+        {
+          id: 'empty',
+          name: 'Empty Template',
+          description: 'Start from scratch with an empty project',
+          source: 'built-in'
+        },
+        {
+          id: 'token-basic',
+          name: 'Basic Token',
+          description: 'Simple fungible token with transfer functionality',
+          source: 'built-in'
+        }
+      ],
+      warning: 'DPM templates unavailable'
+    });
+  }
+});
+
+// Create project from DPM template
+app.post('/api/templates/create', async (req, res) => {
+  const { template } = req.body;
+  const sessionId = uuidv4();
+  const projectDir = path.join(TEMP_DIR, sessionId);
+  
+  console.log(`[${sessionId}] Creating from template: ${template}`);
+  
+  try {
+    // Create temp directory
+    await fs.mkdir(projectDir, { recursive: true });
+    
+    // Run dpm new with template
+    console.log(`[${sessionId}] Running: dpm new ${projectDir} --template ${template}`);
+    
+    const { stdout } = await execWithTimeout(
+      `dpm new ${projectDir} --template ${template}`,
+      {},
+      60000
+    );
+    
+    console.log(`[${sessionId}] Template created:`, stdout);
+    
+    // Read all files from generated project
+    const files = await readProjectFiles(projectDir);
+    
+    console.log(`[${sessionId}] Read ${Object.keys(files).length} files`);
+    
+    // Cleanup
+    await fs.rm(projectDir, { recursive: true, force: true });
+    
+    res.json({
+      success: true,
+      files,
+      sessionId,
+      template
+    });
+    
+  } catch (error) {
+    console.error(`[${sessionId}] Error creating template:`, error);
+    
+    // Cleanup on error
+    try {
+      await fs.rm(projectDir, { recursive: true, force: true });
+    } catch (cleanupErr) {
+      console.error('Cleanup error:', cleanupErr);
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      sessionId
+    });
+  }
+});
+
+// Helper: Read all files from project directory
+async function readProjectFiles(dir, prefix = '') {
+  const files = {};
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+    
+    // Skip hidden files and directories
+    if (entry.name.startsWith('.')) continue;
+    
+    if (entry.isDirectory()) {
+      const subFiles = await readProjectFiles(fullPath, relativePath);
+      Object.assign(files, subFiles);
+    } else {
+      try {
+        const content = await fs.readFile(fullPath, 'utf-8');
+        files[relativePath] = content;
+      } catch (error) {
+        console.error(`Error reading ${relativePath}:`, error);
+      }
+    }
+  }
+  
+  return files;
+}
+
+// Helper: Format template name
+function formatTemplateName(templateId) {
+  return templateId
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Helper: Get template description
+function getTemplateDescription(templateId) {
+  const descriptions = {
+    'skeleton': 'Basic DAML project structure',
+    'empty': 'Minimal project with no sample code',
+    'quickstart-finance': 'Financial contract examples',
+    'daml-intro-1': 'Introduction to DAML - Part 1',
+    'daml-intro-2': 'Introduction to DAML - Part 2',
+    'daml-intro-3': 'Introduction to DAML - Part 3',
+    'daml-intro-4': 'Introduction to DAML - Part 4',
+    'daml-intro-5': 'Introduction to DAML - Part 5',
+    'daml-intro-6': 'Introduction to DAML - Part 6',
+    'daml-intro-7': 'Introduction to DAML - Part 7',
+    'create-daml-app': 'Full-stack DAML application',
+  };
+  
+  return descriptions[templateId] || `${formatTemplateName(templateId)} template`;
+}
+
+// ========== END NEW ENDPOINTS ==========
+
 // Build DAML project
 app.post('/api/build', buildLimiter, async (req, res) => {
   const sessionId = uuidv4();
@@ -183,7 +380,7 @@ app.post('/api/test', buildLimiter, async (req, res) => {
   }
 });
 
-// Get template
+// Get template (existing endpoint - kept for backwards compatibility)
 app.get('/api/templates/:name', (req, res) => {
   const templates = {
     'token-basic': {
@@ -289,7 +486,7 @@ setup = script do
   res.json(template);
 });
 
-// List available templates
+// List available templates (old endpoint - kept for backwards compatibility)
 app.get('/api/templates', (req, res) => {
   res.json({
     templates: [

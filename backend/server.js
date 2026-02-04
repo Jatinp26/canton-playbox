@@ -71,11 +71,33 @@ app.get('/api/templates/list', async (req, res) => {
     let inTemplateList = false;
     
     for (const line of lines) {
-      if (line.includes('Available templates:') || line.includes('available templates:')) {
+      // Check for header line
+      if (line.includes('following templates are available') || 
+          line.includes('Available templates:') || 
+          line.includes('available templates:')) {
         inTemplateList = true;
         continue;
       }
       
+      // Skip empty lines
+      if (!line.trim()) {
+        continue;
+      }
+      
+      // If we're in the template list and line is indented (starts with spaces)
+      if (inTemplateList && line.startsWith('  ') && line.trim().length > 0) {
+        const templateName = line.trim();
+        if (templateName && !templateName.includes(':')) {
+          templates.push({
+            id: templateName,
+            name: formatTemplateName(templateName),
+            description: getTemplateDescription(templateName),
+            source: 'dpm'
+          });
+        }
+      }
+      
+      // Also handle dash-prefixed format (some versions might use this)
       if (inTemplateList && line.trim().startsWith('-')) {
         const templateName = line.trim().substring(1).trim();
         if (templateName) {
@@ -88,6 +110,8 @@ app.get('/api/templates/list', async (req, res) => {
         }
       }
     }
+    
+    console.log('Parsed templates:', templates.map(t => t.id));
     
     // Always include empty template first
     templates.unshift({
@@ -232,17 +256,37 @@ function formatTemplateName(templateId) {
 // Helper: Get template description
 function getTemplateDescription(templateId) {
   const descriptions = {
+    // Tutorial templates
+    'daml-intro-choices': 'Introduction to DAML - Choices',
+    'daml-intro-compose': 'Introduction to DAML - Composing Choices',
+    'daml-intro-constraints': 'Introduction to DAML - Constraints',
+    'daml-intro-contracts': 'Introduction to DAML - Basic Contracts',
+    'daml-intro-daml-scripts': 'Introduction to DAML - Scripts',
+    'daml-intro-data': 'Introduction to DAML - Data Types',
+    'daml-intro-exceptions': 'Introduction to DAML - Exception Handling',
+    'daml-intro-functional-101': 'Introduction to DAML - Functional Programming 101',
+    'daml-intro-parties': 'Introduction to DAML - Parties and Authority',
+    'daml-intro-test': 'Introduction to DAML - Testing',
+    
+    // Pattern templates
+    'daml-patterns': 'Common DAML design patterns',
+    
+    // Basic templates
+    'empty-skeleton': 'Empty project with minimal structure',
     'skeleton': 'Basic DAML project structure',
-    'empty': 'Minimal project with no sample code',
-    'quickstart-finance': 'Financial contract examples',
-    'daml-intro-1': 'Introduction to DAML - Part 1',
-    'daml-intro-2': 'Introduction to DAML - Part 2',
-    'daml-intro-3': 'Introduction to DAML - Part 3',
-    'daml-intro-4': 'Introduction to DAML - Part 4',
-    'daml-intro-5': 'Introduction to DAML - Part 5',
-    'daml-intro-6': 'Introduction to DAML - Part 6',
-    'daml-intro-7': 'Introduction to DAML - Part 7',
-    'create-daml-app': 'Full-stack DAML application',
+    
+    // Finance templates
+    'finance-lifecycling': 'Financial instrument lifecycling patterns',
+    'finance-payoff-modeling': 'Financial payoff modeling examples',
+    'finance-settlement': 'Settlement workflow patterns',
+    'finance-upgrades': 'Upgrading financial contracts',
+    'quickstart-finance': 'Financial contract quickstart',
+    
+    // Other templates
+    'quickstart-java': 'Java integration quickstart',
+    'multi-package-example': 'Multi-package project example',
+    'script-example': 'DAML script examples',
+    'upgrades-example': 'Contract upgrade examples',
   };
   
   return descriptions[templateId] || `${formatTemplateName(templateId)} template`;
@@ -529,6 +573,6 @@ setInterval(async () => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Canton IDE Backend running on port ${PORT}`);
+  console.log(`🚀 Canton Playbox Backend running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

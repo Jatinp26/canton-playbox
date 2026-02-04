@@ -122,6 +122,7 @@ function App() {
     } else {
       loadTemplate(selectedTemplate);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTemplate]);
 
   const loadTemplate = async (templateName) => {
